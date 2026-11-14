@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Подарок</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #ffe0b2, #ffccbc);
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+
+  /* ---------- ШАГ 1-3: один кот ---------- */
+  #step1 {
+    text-align: center;
+    transition: opacity 0.6s;
+  }
+  .bubble {
+    background: #fff;
+    border-radius: 20px;
+    padding: 16px 24px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #5d4037;
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    margin-bottom: 20px;
+    position: relative;
+    animation: float 2.5s ease-in-out infinite;
+    min-height: 62px;
+  }
+  .bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -12px; left: 50%;
+    transform: translateX(-50%);
+    border: 12px solid transparent;
+    border-top-color: #fff;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  #cat1 {
+    width: 300px;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.5s;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,.15));
+  }
+  #cat1:hover { transform: scale(1.05); }
+  #cat1.gone { opacity: 0; transform: scale(0.8); pointer-events: none; }
+
+  /* ---------- ШАГ 4-5: коты тащат открытку ---------- */
+  #step2 {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  #step2.show { display: flex; }
+
+  #caravan {
+    position: relative;
+    transform: translateX(120vw);
+    transition: transform 1.5s cubic-bezier(.3,.7,.3,1);
+    cursor: default;
+  }
+  #caravan.in { transform: translateX(0); }
+  #caravan.clickable { cursor: pointer; }
+  #caravan img {
+    width: 480px;
+    max-width: 85vw;
+    filter: drop-shadow(0 12px 24px rgba(0,0,0,.2));
+    display: block;
+  }
+  #hint2 {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #e65100;
+    opacity: 0;
+    transition: opacity 0.6s;
+  }
+  #hint2.show { opacity: 1; animation: float 2.5s ease-in-out infinite; }
+
+  /* ---------- ШАГ 6: открытка с 4 котами ---------- */
+  #step3 {
+    position: relative;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  #step3.show { display: flex; animation: fadeIn 0.6s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .corner-cat {
+    position: absolute;
+    width: 140px;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,.15));
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.8s;
+  }
+  .corner-cat.show { opacity: 1; }
+  .cat-tl { top: -20px; left: -30px; transform: rotate(-15deg); }
+  .cat-tr { top: -20px; right: -30px; transform: rotate(15deg) scaleX(-1); }
+  .cat-bl { bottom: -20px; left: -30px; transform: rotate(10deg); }
+  .cat-br { bottom: -20px; right: -30px; transform: rotate(-10deg) scaleX(-1); }
+
+  .card {
+    perspective: 1400px;
+    width: 380px;
+    height: 480px;
+    max-width: 85vw;
+    max-height: 80vh;
+    cursor: pointer;
+  }
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 1.2s cubic-bezier(.4,.2,.2,1);
+  }
+  .card.open .card-inner { transform: rotateY(-170deg); }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+  }
+  .card-front {
+    background: linear-gradient(160deg, #fff3e0, #ffe0b2);
+    border: 4px dashed #ff9800;
+    font-size: 22px;
+    font-weight: 700;
+    color: #e65100;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .card-front .hint { font-size: 14px; font-weight: 400; color: #a1887f; }
+  .card-back {
+    background: linear-gradient(160deg, #fffde7, #fff9c4);
+    transform: rotateY(180deg);
+    flex-direction: column;
+    gap: 14px;
+  }
+  .card-back h2 { font-size: 22px; color: #6d4c41; }
+  .card-back p { font-size: 16px; line-height: 1.6; color: #5d4037; }
+  .card-back .sign { font-size: 15px; font-style: italic; color: #8d6e63; margin-top: 8px; }
+
+  .confetti {
+    position: fixed;
+    width: 10px; height: 10px;
+    top: -20px;
+    animation: fall linear forwards;
+    pointer-events: none;
+    z-index: 100;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    #cat1 { width: 220px; }
+    .bubble { font-size: 16px; }
+    .corner-cat { width: 90px; }
+    .card { width: 300px; height: 420px; }
+    .card-back p { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ШАГ 1-3 -->
+  <div id="step1">
+    <div class="bubble" id="bubble">У меня для тебя подарок 🎁<br>Нажми на меня!</div>
+    <img id="cat1" src="рыжик.png" alt="Кот">
+  </div>
+
+  <!-- ШАГ 4-5 -->
+  <div id="step2">
+    <div id="caravan">
+      <img src="открытка.jpg" alt="Коты несут открытку"><!--САМА ОТКРЫТК-->
+    </div>
+    <div id="hint2">Это тебе 💌 Нажми на открытку!</div>
+  </div>
+
+  <!-- ШАГ 6 -->
+  <div id="step3">
+    <img class="corner-cat cat-tl" src="жир.png" alt="">
+    <img class="corner-cat cat-tr" src="рыж фин.png" alt="">
+    <img class="corner-cat cat-bl" src="маяй.png" alt="">
+    <img class="corner-cat cat-br" src="пикс.png" alt=""><!--img/cat1.png-->
+
+    <div class="card" id="card">
+      <div class="card-inner">
+        <div class="card-face card-front">
+          <span>💌</span>
+          <span>Тебе открытка!</span>
+          <span class="hint">(нажми, чтобы открыть)</span>
+        </div>
+        <div class="card-face card-back">
+          <h2>Дорогая тётя Маша! 💛</h2>
+          <p>Спасибо, что вы есть. вы —<span style="color: red;">Ч</span>еловек с большой буквы.</p>
+          <p><span style="color: red;">Спасибо вам</span>, что берете меня во всюда, а также разрешаете оставатся в гостях.</p>
+          <p>Желаю вам, счастья, любви, путешествий, а самое главное <span style="color: red;">Здоровья</span> !</p>
+          <p class="sign">Искренне, ваш племянник <span style="color: red;">Филипп</span>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const step3 = document.getElementById('step3');
+  const bubble = document.getElementById('bubble');
+  const cat1 = document.getElementById('cat1');
+  const caravan = document.getElementById('caravan');
+  const hint2 = document.getElementById('hint2');
+  const card = document.getElementById('card');
+  const cornerCats = document.querySelectorAll('.corner-cat');
+
+  let phase = 0; // 0 = ждём клик по коту, 1 = ждём "дай пять", 2 = ждём клик по каравану, 3 = ждём открытку
+
+  // ШАГ 1 → 2: клик по коту, он "даёт пять"
+  cat1.addEventListener('click', () => {
+    if (phase !== 0) return;
+    phase = 1;
+    cat1.src = 'лайк.png'; // фото с вытянутой лапой
+    bubble.innerHTML = 'Дай пять! 🐾';
+  });
+
+  // ШАГ 2 → 3: клик по лапе, "Отлично!", кот исчезает
+  cat1.addEventListener('click', () => {
+    if (phase !== 1) return;
+    phase = 2;
+    bubble.innerHTML = 'Отлично! ✨';
+    setTimeout(() => {
+      cat1.classList.add('gone');
+      step1.style.opacity = '0';
+      setTimeout(() => {
+        step1.style.display = 'none';
+        startCaravan();
+      }, 600);
+    }, 900);
+  });
+
+  // ШАГ 4-5: коты въезжают справа
+  function startCaravan() {
+    step2.classList.add('show');
+    requestAnimationFrame(() => {
+      setTimeout(() => caravan.classList.add('in'), 50);
+    });
+    setTimeout(() => {
+      hint2.classList.add('show');
+      caravan.classList.add('clickable');
+    }, 1700);
+  }
+
+  // ШАГ 5 → 6: клик по каравану
+  caravan.addEventListener('click', () => {
+    if (phase !== 2) return;
+    phase = 3;
+    step2.style.transition = 'opacity 0.6s';
+    step2.style.opacity = '0';
+    setTimeout(() => {
+      step2.style.display = 'none';
+      step3.classList.add('show');
+      cornerCats.forEach((c, i) => {
+        setTimeout(() => c.classList.add('show'), i * 150);
+      });
+    }, 600);
+  });
+
+  // ШАГ 6: клик по открытке
+  card.addEventListener('click', () => {
+    if (phase !== 3) return;
+    phase = 4;
+    card.classList.add('open');
+    setTimeout(spawnConfetti, 700);
+  });
+
+  function spawnConfetti() {
+    const colors = ['#ff9800','#e91e63','#ffeb3b','#4caf50','#2196f3','#9c27b0'];
+    for (let i = 0; i < 500; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      c.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      c.style.animationDelay = Math.random() * 0.5 + 's';
+      c.style.width = c.style.height = (6 + Math.random() * 8) + 'px';
+      c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4000);
+    }
+  }
+</script>
+</body>
+</html>
